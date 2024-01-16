@@ -4,15 +4,16 @@ import PropTypes from 'prop-types'
 import Task from '../task/task'
 import './taskList.css'
 
-export default class TodoList extends React.Component {
+export default class TaskList extends React.Component {
   static propTypes = {
     todos: PropTypes.array,
     deletingTask: PropTypes.func,
     completingTask: PropTypes.func,
+    editingTask: PropTypes.func,
   }
 
   render() {
-    const { todos, deletingTask, completingTask } = this.props
+    const { todos, deletingTask, completingTask, editingTask } = this.props
     const elements = todos.map((item) => {
       const { id, ...itemsProps } = item
       return (
@@ -24,6 +25,9 @@ export default class TodoList extends React.Component {
           }}
           completingTask={() => {
             completingTask(id)
+          }}
+          editingTask={() => {
+            editingTask(id)
           }}
         />
       )

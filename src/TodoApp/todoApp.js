@@ -40,7 +40,6 @@ export default class TodoApp extends React.Component {
   addingTask = (text, min, sec) => {
     this.setState(({ todos }) => {
       const newItem = this.createTask(text, min, sec)
-      console.log(newItem)
       return {
         todos: [...todos, newItem],
       }
@@ -113,13 +112,33 @@ export default class TodoApp extends React.Component {
     }))
   }
 
+  editingTask = (id, newText) => {
+    this.setState(({ todos }) => {
+      const newTodos = todos.map((el) => {
+        if (el.id === id) {
+          return { ...el, description: newText }
+        }
+        return el
+      })
+
+      return {
+        todos: newTodos,
+      }
+    })
+  }
+
   render() {
     const itemsLeftCount = this.state.todos.filter((el) => el.completed === false).length
     return (
       <section className="todoapp">
         <NewTaskForm addingTask={this.addingTask} />
 
-        <TaskList todos={this.state.todos} deletingTask={this.deletingTask} completingTask={this.completingTask} />
+        <TaskList
+          todos={this.state.todos}
+          deletingTask={this.deletingTask}
+          completingTask={this.completingTask}
+          editingTask={this.editingTask}
+        />
 
         <Footer
           itemsLeftCount={itemsLeftCount}
