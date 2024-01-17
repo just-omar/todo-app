@@ -32,6 +32,10 @@ export default class Task extends React.Component {
     inputValue: this.props.description,
   }
 
+  componentWillUnmount() {
+    clearInterval(this.state.timer)
+  }
+
   startTimer = () => {
     if (!this.state.timer) {
       let totalSeconds = this.state.min * 60 + this.state.sec
@@ -40,6 +44,8 @@ export default class Task extends React.Component {
         return
       }
       const newTimer = setInterval(() => {
+        console.log(this.state.min, this.state.sec)
+
         if (this.state.min * 60 + this.state.sec <= 0) {
           this.pauseTimer()
           return
