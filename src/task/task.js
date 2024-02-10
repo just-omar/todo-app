@@ -1,82 +1,58 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import './task.css'
 import { formatDistanceToNow } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export default class Task extends React.Component {
-  static propTypes = {
-    filtered: PropTypes.bool,
-    completingTask: PropTypes.func,
-    completed: PropTypes.bool,
-    description: PropTypes.string,
-    deletingTask: PropTypes.func,
-    editingTask: PropTypes.func,
-    min: PropTypes.number,
-    sec: PropTypes.number,
-  }
+const Task = ({
+  id,
+  filtered,
+  completingTask,
+  completed,
+  description,
+  deletingTask,
+  editingTask,
+  min,
+  sec,
+  created,
+}) => {
+  const [timer, setTimer] = useState(null)
+  const [minState, setMin] = useState(min)
+  const [secState, setSec] = useState(sec)
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputValue, setInputValue] = useState(description)
 
-  static defaultProps = {
-    description: 'text',
-    filtered: false,
-    completed: false,
-    created: new Date(),
-    id: 1,
-  }
-
-  state = {
-    min: this.props.min,
-    sec: this.props.sec,
-    timer: null,
-    formattedTime: '00:00:00',
-    isEditing: false,
-    inputValue: this.props.description,
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.state.timer)
-  }
-
-  startTimer = () => {
-    if (!this.state.timer) {
-      let totalSeconds = this.state.min * 60 + this.state.sec
-      if (totalSeconds <= 0) {
-        this.pauseTimer()
-        return
-      }
-      const newTimer = setInterval(() => {
-        console.log(this.state.min, this.state.sec)
-
-        if (this.state.min * 60 + this.state.sec <= 0) {
-          this.pauseTimer()
-          return
-        }
-        if (this.state.sec >= 1) {
-          this.setState(() => {
-            return {
-              sec: this.state.sec - 1,
-            }
-          })
+  useEffect(() => {
+    if (timer) {
+      const interval = setInterval(() => {
+        if (minState === 0 && secState === 0) {
+          clearInterval(interval)
+          setTimer(null)
+        } else if (secState === 0) {
+          setMin((prevMin) => prevMin - 1)
+          setSec(59)
         } else {
-          this.setState(() => {
-            return {
-              min: this.state.min - 1,
-              sec: this.state.sec + 59,
-            }
-          })
+          setSec((prevSec) => prevSec - 1)
         }
       }, 1000)
-      this.setState({ timer: newTimer })
+
+      return () => clearInterval(interval)
+    }
+  }, [timer, minState, secState])
+
+  const startTimer = () => {
+    if (!timer && (minState > 0 || secState > 0)) {
+      setTimer(true)
     }
   }
 
-  pauseTimer = () => {
-    if (this.state.timer) {
-      clearInterval(this.state.timer)
-      this.setState({ timer: null })
+  const pauseTimer = () => {
+    if (timer) {
+      clearInterval(timer)
+      setTimer(null)
     }
   }
 
-  pad = (val) => {
+  const pad = (val) => {
     let valString = val + ''
     if (valString.length < 2) {
       return '0' + valString
@@ -84,78 +60,87 @@ export default class Task extends React.Component {
       return valString
     }
   }
-  handleDescriptionChange = (event) => {
+
+  const handleDescriptionChange = (event) => {
     const { value } = event.target
-    this.setState({ inputValue: value })
+    setInputValue(value)
   }
 
-  handleDescriptionBlur = () => {
-    const { inputValue } = this.state
-    const { id, editingTask } = this.props
+  const handleDescriptionBlur = () => {
     editingTask(id, inputValue)
-    this.setState({ isEditing: false })
+    setIsEditing(false)
   }
 
-  handleEditClick = () => {
-    console.log('eeddditt')
-    this.setState({ isEditing: true })
+  const handleEditClick = () => {
+    setIsEditing(true)
   }
 
-  handleKeyPress = (event) => {
+  const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault()
-      const { inputValue } = this.state
-      const { id, editingTask } = this.props
       editingTask(id, inputValue)
-      this.setState({ isEditing: false })
+      setIsEditing(false)
     }
   }
 
-  render() {
-    const { completingTask, completed, filtered } = this.props
-    const checked = completed
-    let classNamesTask = 'task'
+  const checked = completed
+  let classNamesTask = 'task'
 
-    if (completed) {
-      classNamesTask += ' completed'
-    }
-
-    if (filtered) {
-      classNamesTask += ' filtered'
-    }
-
-    const { created, deletingTask } = this.props
-    const { isEditing } = this.state
-
-    return (
-      <div className={classNamesTask}>
-        <input className="toggle" type="checkbox" onChange={completingTask} checked={checked} />
-        <label>
-          {isEditing ? (
-            <input
-              type="text"
-              autoFocus
-              value={this.state.inputValue}
-              onBlur={this.handleDescriptionBlur}
-              onKeyPress={this.handleKeyPress}
-              onChange={this.handleDescriptionChange}
-            />
-          ) : (
-            <span className="description" onClick={completingTask}>
-              {this.state.inputValue}
-            </span>
-          )}
-          <div className="timer">
-            <p id="timer">{`${this.pad(this.state.min)}:${this.pad(this.state.sec)}`}</p>
-            <button id="startBtn" className="icon-timer icon-start" onClick={() => this.startTimer()} />
-            <button id="pauseBtn" className="icon-timer icon-pause" onClick={() => this.pauseTimer()} />
-          </div>
-          <span className="created">{formatDistanceToNow(created)} ago</span>
-        </label>
-        <button className="icon icon-edit" onClick={this.handleEditClick}></button>
-        <button className="icon icon-destroy" onClick={deletingTask}></button>
-        {/* <input type="text" className="edit" onClick={this.handleEditClick} /> */}
-      </div>
-    )
+  if (completed) {
+    classNamesTask += ' completed'
   }
+
+  if (filtered) {
+    classNamesTask += ' filtered'
+  }
+
+  return (
+    <div className={classNamesTask}>
+      <input className="toggle" type="checkbox" onChange={completingTask} checked={checked} />
+      <label>
+        {isEditing ? (
+          <input
+            type="text"
+            autoFocus
+            value={inputValue}
+            onBlur={handleDescriptionBlur}
+            onKeyPress={handleKeyPress}
+            onChange={handleDescriptionChange}
+          />
+        ) : (
+          <span className="description" onClick={completingTask}>
+            {inputValue}
+          </span>
+        )}
+        <div className="timer">
+          <p id="timer">{`${pad(minState)}:${pad(secState)}`}</p>
+          <button id="startBtn" className="icon-timer icon-start" onClick={startTimer} />
+          <button id="pauseBtn" className="icon-timer icon-pause" onClick={pauseTimer} />
+        </div>
+        <span className="created">{formatDistanceToNow(created)} ago</span>
+      </label>
+      <button className="icon icon-edit" onClick={handleEditClick}></button>
+      <button className="icon icon-destroy" onClick={deletingTask}></button>
+    </div>
+  )
 }
+
+Task.propTypes = {
+  completingTask: PropTypes.func,
+  completed: PropTypes.bool,
+  description: PropTypes.string,
+  deletingTask: PropTypes.func,
+  editingTask: PropTypes.func,
+  min: PropTypes.number,
+  sec: PropTypes.number,
+  created: PropTypes.instanceOf(Date),
+}
+
+Task.defaultProps = {
+  description: 'text',
+  completed: false,
+  created: new Date(),
+  id: 1,
+}
+
+export default Task
