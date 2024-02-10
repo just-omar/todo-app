@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import NewTaskForm from '../NewTaskForm/newTaskForm'
 import TaskList from '../TaskList/taskList'
-import Footer from '../Footer/footer'
+import Footer from '../footer/footer'
 import './todoApp.css'
 
 const TodoApp = () => {

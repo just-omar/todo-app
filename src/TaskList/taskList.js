@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import Task from '../Task/task'
+import Task from '../task/task'
 import './taskList.css'
 
 const TaskList = ({ todos, deletingTask, completingTask, editingTask }) => {
